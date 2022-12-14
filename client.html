@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      let socket = null;
+      let username = document.getElementById("username");
+      let onlineUsers = document.getElementById("onlineUsers");
+      let ticket = document.getElementById("ticket");
+      let ticketList = document.getElementById("ticketList");
+
+      window.onbeforeunload = function () {
+        console.log("Leaving");
+        let jsonData = {};
+        jsonData["action"] = "left";
+        jsonData["username"] = username.value;
+        jsonData["ticket"] = ticket.value;
+        socket.send(JSON.stringify(jsonData));
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        socket = new WebSocket("ws://127.0.0.1:8080/ws");
+        // let socket = new WebSocket("ws://127.0.0.1:8080/ws");
+        // let username = document.getElementById("username");
+        // let onlineUsers = document.getElementById("onlineUsers");
+        // let ticket = document.getElementById("ticket");
+        // let ticketList = document.getElementById("ticketList");
+        username = document.getElementById("username");
+        onlineUsers = document.getElementById("onlineUsers");
+        ticket = document.getElementById("ticket");
+        ticketList = document.getElementById("ticketList");
+
+
+        socket.onopen = () => {
+          console.log("Connection open!");
+        };
+
+        socket.onerror = () => {
+          console.log("Connection Fail!");
+        };
+
+        socket.onclose = () => {
+          console.log("Connection Close!");
+        };
+
+        socket.onmessage = (response) => {
+          let data = JSON.parse(response.data);
+          console.log("Action is: ", data.action);
+
+          // switch (data.action) {
+          //   case "username":
+          //     onlineUsers.innerHTML = data.onlineUsers;
+          //     break;
+
+          //   case "ticket":
+          //     ticketList.innerHTML = data.ticketList;
+          //     break;
+          // }
+          onlineUsers.innerHTML = data.onlineUsers;
+          ticketList.innerHTML = data.ticketList;
+        };
+
+        username.addEventListener("change", function () {
+          let jsonData = {};
+          jsonData["action"] = "username";
+          jsonData["username"] = this.value;
+          socket.send(JSON.stringify(jsonData));
+        });
+
+        ticket.addEventListener("keydown", function (e) {
+          if (e.code === "Enter") {
+            if (username.value === "" || ticket.value === "") {
+              alert("Fill out username and ticket");
+            }
+
+            let jsonData = {};
+            jsonData["action"] = "ticket";
+            jsonData["username"] = username.value;
+            jsonData["ticket"] = parseInt(this.value);
+            socket.send(JSON.stringify(jsonData));
+            console.log("Ticket is sent!");
+          }
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <label for="username">Username</label>
+    <input type="text" id="username" /><br />
+    <label for="ticket">Ticket</label>
+    <input type="text" id="ticket" /><br />
+    <pre id="onlineUsers"></pre>
+    <pre id="ticketList"></pre>
+    <a href="github.com">Disconnect!</a>
+  </body>
+</html>
